@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PetTypesService } from './pet-types.service';
-import { CreatePetTypeDto } from './dto/createPetType.dto';
+import { createpettypedto } from './dto/createpettype.dto';
 import { PetType } from './entities/pet-type.entity';
 import { UpdatePetTypeDto } from './dto/updatePetType.dto';
 
@@ -21,7 +21,7 @@ export class PetTypesController {
   logger = new Logger('PetTypes');
   @Post()
   @ApiOperation({ summary: 'Create a new pet type entry' })
-  async create(@Body() dto: CreatePetTypeDto): Promise<PetType> {
+  async create(@Body() dto: createpettypedto): Promise<PetType> {
     const petType = await this.petTypesService.create(dto);
     this.logger.debug(`Создан новый вид питомца: ${dto.type}`);
     return petType;

@@ -1,15 +1,15 @@
-import { CreatePetTypeDto } from './dto/createPetType.dto';
 import { UpdatePetTypeDto } from './dto/updatePetType.dto';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
-// WTF??
+// WTF?? What's wrong with this?
 import { PetType } from './entities/pet-type.entity';
+import { createpettypedto } from './dto/createpettype.dto';
 
 @Injectable()
 export class PetTypesService {
   constructor(private readonly manager: EntityManager) {}
 
-  async create(dto: CreatePetTypeDto): Promise<PetType> {
+  async create(dto: createpettypedto): Promise<PetType> {
     const petType = this.manager.create(PetType, dto);
     return await this.manager.save(petType);
   }
