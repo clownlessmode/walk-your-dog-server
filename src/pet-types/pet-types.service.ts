@@ -3,13 +3,19 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 // WTF?? What's wrong with this?
 import { PetType } from './entities/pet-type.entity';
-import { createpettypedto } from './dto/createpettype.dto';
-
+import { IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+class CreatePetTypeDto {
+  @ApiProperty({ example: 'Собака' })
+  @IsString({ message: 'Название вида питомца должно быть строкой' })
+  @IsNotEmpty({ message: 'Вид питомца не может быть пустым' })
+  type: string;
+}
 @Injectable()
 export class PetTypesService {
   constructor(private readonly manager: EntityManager) {}
 
-  async create(dto: createpettypedto): Promise<PetType> {
+  async create(dto: CreatePetTypeDto): Promise<PetType> {
     const petType = this.manager.create(PetType, dto);
     return await this.manager.save(petType);
   }

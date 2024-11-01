@@ -8,12 +8,17 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { PetTypesService } from './pet-types.service';
-import { createpettypedto } from './dto/createpettype.dto';
 import { PetType } from './entities/pet-type.entity';
 import { UpdatePetTypeDto } from './dto/updatePetType.dto';
-
+import { IsNotEmpty, IsString } from 'class-validator';
+class CreatePetTypeDto {
+  @ApiProperty({ example: 'Собака' })
+  @IsString({ message: 'Название вида питомца должно быть строкой' })
+  @IsNotEmpty({ message: 'Вид питомца не может быть пустым' })
+  type: string;
+}
 @ApiTags('Pet Types')
 @Controller('pet-types')
 export class PetTypesController {
@@ -21,7 +26,7 @@ export class PetTypesController {
   logger = new Logger('PetTypes');
   @Post()
   @ApiOperation({ summary: 'Create a new pet type entry' })
-  async create(@Body() dto: createpettypedto): Promise<PetType> {
+  async create(@Body() dto: CreatePetTypeDto): Promise<PetType> {
     const petType = await this.petTypesService.create(dto);
     this.logger.debug(`Создан новый вид питомца: ${dto.type}`);
     return petType;
