@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
-
-import { PetType } from './entities/pet-type.entity';
 import { CreatePetTypeDto } from './dto/createPetType.dto';
 import { UpdatePetTypeDto } from './dto/updatePetType.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { EntityManager } from 'typeorm';
+// WTF??
+import { PetType } from './entities/pet-type.entity';
 
 @Injectable()
 export class PetTypesService {
