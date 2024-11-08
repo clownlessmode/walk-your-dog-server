@@ -47,9 +47,6 @@ export class CreateServiceValueDto {
     ],
   })
   @IsArray()
-  @ArrayMinSize(1, {
-    message: 'Должна быть хотя бы одна дополнительная услуга',
-  })
   @ValidateNested({ each: true })
   @Type(() => CreateAdditionalDto)
   additional: CreateAdditionalDto[];
