@@ -1,37 +1,58 @@
 import { Injectable } from '@nestjs/common';
-import { InjectEntityManager } from '@nestjs/typeorm';
+import {} from '@nestjs/typeorm';
+import { ServiceValue } from './entities/service-value.entity';
+import { Additional } from './entities/additional.entity';
 import { EntityManager } from 'typeorm';
-import { Service } from './entities/service.entity';
+import { CreateServiceValueDto } from './dto/createServiceValue.dto';
+import { CreateAdditionalDto } from './dto/createAdditional.dto';
 
 @Injectable()
 export class ServiceService {
-  constructor(
-    @InjectEntityManager()
-    private readonly manager: EntityManager
-  ) {}
-  /*
- // Метод для поиска услуг с определенными условиями
- async findServices(whereConditions: Partial<Service>): Promise<Service[]> {
-   return this.manager.find(Service, { where: whereConditions });
- }
-*/
+  constructor(private manager: EntityManager) {}
 
-  // Метод для создания новой услуги
-  async createService(data: Partial<Service>): Promise<Service> {
-    const service = this.manager.create(Service, data);
-    return this.manager.save(service);
+  async create(dto: CreateServiceValueDto): Promise<ServiceValue> {
+    const serviceValue = this.manager.create(ServiceValue, {
+      ...dto,
+      additional: dto.additional,
+    });
+    return await this.manager.save(serviceValue);
   }
 
-  /*
-// Метод для обновления услуги
-async updateService(id: number, data: Partial<Service>): Promise<Service> {
- await this.manager.update(Service, id, data);
- return this.manager.findOne(Service, { where: { id } });
-}
-*/
-  /*
-// Метод для удаления услуги
-async deleteService(id: number): Promise<void> {
- await this.manager.delete(Service, id);
-}*/
+  async addAdditional(
+    serviceId: string,
+    additionalDto: CreateAdditionalDto
+  ): Promise<ServiceValue> {
+    const serviceValue = await this.manager.findOne(ServiceValue, {
+      where: { id: serviceId },
+    });
+    const additional = this.manager.create(Additional, {
+      ...additionalDto,
+      serviceValue,
+    });
+    serviceValue.additional.push(additional);
+    await this.manager.save(additional);
+    return serviceValue;
+  }
+
+  async removeAdditional(
+    serviceId: string,
+    additionalId: string
+  ): Promise<ServiceValue> {
+    await this.manager.delete(Additional, {
+      id: additionalId,
+      serviceValue: { id: serviceId },
+    });
+    return await this.manager.findOne(ServiceValue, {
+      where: { id: serviceId },
+      relations: ['additional'],
+    });
+  }
+
+  async deleteServiceValue(serviceId: string): Promise<void> {
+    await this.manager.delete(ServiceValue, serviceId);
+  }
+
+  async findAll(): Promise<ServiceValue[]> {
+    return await this.manager.find(ServiceValue);
+  }
 }

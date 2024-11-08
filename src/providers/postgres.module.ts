@@ -13,6 +13,8 @@ import { PetType } from 'src/pet-types/entities/pet-type.entity';
 import { Pet } from 'src/pets/entities/pet.entity';
 import { PetParameters } from 'src/pets/entities/petParameters.entity';
 import { Reminder } from 'src/reminders/entities/reminder.entity';
+import { Additional } from 'src/service/entities/additional.entity';
+import { ServiceValue } from 'src/service/entities/service-value.entity';
 import { Story } from 'src/stories/entities/story.entity';
 import { Meta } from 'src/users/entites/meta.entity';
 import { User } from 'src/users/entites/user.entity';
@@ -52,6 +54,8 @@ import { Vaccine } from 'src/vaccines/entities/vaccine.entity';
             Abonement,
             UserAbonement,
             Address,
+            ServiceValue,
+            Additional,
           ],
         };
       },

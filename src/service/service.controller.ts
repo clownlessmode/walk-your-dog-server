@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   Query,
+  Patch,
 } from '@nestjs/common';
 import { ServiceService } from './service.service';
 import { Service } from './entities/service.entity';
@@ -17,42 +18,55 @@ import {
   ApiQuery,
   ApiBody,
 } from '@nestjs/swagger';
+import { CreateServiceValueDto } from './dto/createServiceValue.dto';
+import { ServiceValue } from './entities/service-value.entity';
+import { CreateAdditionalDto } from './dto/createAdditional.dto';
 
-@ApiTags('services')
-@Controller('services')
+@ApiTags('serviceValues')
+@Controller('serviceValues')
 export class ServiceController {
   constructor(private readonly serviceService: ServiceService) {}
-  /*
-  @Get()
-  @ApiOperation({ summary: 'Получить список услуг по условиям' })
-  @ApiQuery({ name: 'type', required: false, description: 'Тип услуги' })
-  async findAll(@Query('type') type?: string): Promise<Service[]> {
-    const conditions = type ? { type } : {};
-    return this.serviceService.findServices(conditions);
-  }
-  */
-
   @Post()
-  @ApiOperation({ summary: 'Создать новую услугу' })
-  @ApiBody({ type: Service })
-  async create(@Body() data: Partial<Service>): Promise<Service> {
-    return this.serviceService.createService(data);
+  @ApiOperation({ summary: 'Create a new service value entry' })
+  async create(@Body() dto: CreateServiceValueDto): Promise<ServiceValue> {
+    const serviceValue = await this.serviceService.create(dto);
+    console.log(`Created new service: ${dto.name}`);
+    return serviceValue;
   }
 
-  /*
-  @Put(':id')
-  @ApiOperation({ summary: 'Обновить услугу по ID' })
-  @ApiParam({ name: 'id', description: 'ID услуги' })
-  @ApiBody({ type: Service })
-  async update(@Param('id') id: number, @Body() data: Partial<Service>): Promise<Service> {
-    return this.serviceService.updateService(id, data);
-  }*/
-  /*
+  @Post(':id/additional')
+  @ApiOperation({ summary: 'Add an additional service to a service value' })
+  async addAdditional(
+    @Param('id') serviceId: string,
+    @Body() additionalDto: CreateAdditionalDto
+  ): Promise<ServiceValue> {
+    return await this.serviceService.addAdditional(serviceId, additionalDto);
+  }
+
+  @Patch(':id/additional/:additionalId')
+  @ApiOperation({
+    summary: 'Remove an additional service from a service value',
+  })
+  async removeAdditional(
+    @Param('id') serviceId: string,
+    @Param('additionalId') additionalId: string
+  ): Promise<ServiceValue> {
+    return await this.serviceService.removeAdditional(serviceId, additionalId);
+  }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Удалить услугу по ID' })
-  @ApiParam({ name: 'id', description: 'ID услуги' })
-  async delete(@Param('id') id: number): Promise<void> {
-    return this.serviceService.deleteService(id);
-  }*/
+  @ApiOperation({
+    summary: 'Delete a service value including its additional services',
+  })
+  async deleteServiceValue(@Param('id') serviceId: string): Promise<void> {
+    await this.serviceService.deleteServiceValue(serviceId);
+  }
+
+  @Get()
+  @ApiOperation({
+    summary: 'Get all service values',
+  })
+  async findAll(): Promise<ServiceValue[]> {
+    return await this.serviceService.findAll();
+  }
 }
