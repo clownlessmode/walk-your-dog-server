@@ -1,58 +1,48 @@
 import { Injectable } from '@nestjs/common';
 import {} from '@nestjs/typeorm';
-import { ServiceValue } from './entities/service-value.entity';
-import { Additional } from './entities/additional.entity';
+
 import { EntityManager } from 'typeorm';
-import { CreateServiceValueDto } from './dto/createServiceValue.dto';
-import { CreateAdditionalDto } from './dto/createAdditional.dto';
+import { CreateMainServiceDto } from './dto/create-main.dto';
+import { MainService } from './entities/main-service.entity';
+import { SubService } from './entities/sub-service.entity';
+import { CreateSubServiceDto } from './dto/create-sub.dto';
 
 @Injectable()
 export class ServiceService {
   constructor(private manager: EntityManager) {}
+  // All Services
+  async getCatalog(): Promise<any> {
+    const mainServices = await this.manager.find(MainService);
+    const subServices = await this.manager.find(SubService);
 
-  async create(dto: CreateServiceValueDto): Promise<ServiceValue> {
-    const serviceValue = this.manager.create(ServiceValue, {
-      ...dto,
-      additional: dto.additional,
+    const subServicesGrouped = subServices.reduce((acc, subService) => {
+      const { main_id } = subService;
+      if (!acc[main_id]) {
+        acc[main_id] = [];
+      }
+      acc[main_id].push(subService);
+      return acc;
+    }, {});
+
+    const result = mainServices.map((mainService) => {
+      return {
+        ...mainService,
+        additional: subServicesGrouped[mainService.id] || [],
+      };
     });
-    return await this.manager.save(serviceValue);
+
+    return result;
   }
 
-  async addAdditional(
-    serviceId: string,
-    additionalDto: CreateAdditionalDto
-  ): Promise<ServiceValue> {
-    const serviceValue = await this.manager.findOne(ServiceValue, {
-      where: { id: serviceId },
-    });
-    const additional = this.manager.create(Additional, {
-      ...additionalDto,
-      serviceValue,
-    });
-    serviceValue.additional.push(additional);
-    await this.manager.save(additional);
-    return serviceValue;
+  // Main Services
+  async createMain(dto: CreateMainServiceDto): Promise<MainService> {
+    const service = await this.manager.create(MainService, dto);
+    return await this.manager.save(service);
   }
 
-  async removeAdditional(
-    serviceId: string,
-    additionalId: string
-  ): Promise<ServiceValue> {
-    await this.manager.delete(Additional, {
-      id: additionalId,
-      serviceValue: { id: serviceId },
-    });
-    return await this.manager.findOne(ServiceValue, {
-      where: { id: serviceId },
-      relations: ['additional'],
-    });
-  }
-
-  async deleteServiceValue(serviceId: string): Promise<void> {
-    await this.manager.delete(ServiceValue, serviceId);
-  }
-
-  async findAll(): Promise<ServiceValue[]> {
-    return await this.manager.find(ServiceValue);
+  // Sub Services
+  async createSub(dto: CreateSubServiceDto): Promise<SubService> {
+    const service = await this.manager.create(SubService, dto);
+    return await this.manager.save(service);
   }
 }
