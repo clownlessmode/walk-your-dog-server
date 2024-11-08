@@ -86,4 +86,18 @@ export class PetsService {
     }
     return pets;
   }
+
+  async delete(id: string): Promise<void> {
+    // Найти питомца с его параметрами
+    const pet = await this.manager.findOne(Pet, {
+      where: { id },
+      relations: ['parameters'],
+    });
+
+    if (!pet) {
+      throw new NotFoundException(`Питомец с ID ${id} не найден`);
+    }
+    // Удалить питомца из базы данных
+    await this.manager.remove(Pet, pet);
+  }
 }

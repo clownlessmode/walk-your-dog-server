@@ -48,4 +48,10 @@ export class User extends DefaultEntity {
   })
   @ApiProperty({ type: () => UserAbonement, isArray: true })
   abonements: UserAbonement[];
+
+  /*
+  @OneToOne(() => Worker, { cascade: true, nullable: true })
+  @JoinColumn()
+  worker?: Worker | null;
+  */
 }

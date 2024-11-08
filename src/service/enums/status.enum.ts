@@ -1,0 +1,8 @@
+export enum ServiceStatus {
+  DONE = 'DONE',
+  INPROGRESS = 'INPROGRESS',
+  CANCELLED = 'CANCELLED',
+  TRANSFERRED = 'TRANSFERRED',
+  SEARCH = 'SEARCH',
+  REPORT = 'REPORT',
+}

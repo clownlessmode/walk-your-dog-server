@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Logger,
   Param,
@@ -75,11 +76,10 @@ export class PetsController {
   //   return story;
   // }
 
-  // @Delete(':id')
-  // @ApiOperation({ summary: 'Delete a pet by ID' })
-  // async delete(@Param('id') id: string): Promise<void> {
-  //   const story = await this.PetsService.delete(id);
-  //   this.logger.debug(`Пользователь удалил историю: ${id}`);
-  //   return story;
-  // }
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a pet by ID' })
+  async delete(@Param('id') id: string): Promise<void> {
+    await this.petsService.delete(id);
+    this.logger.debug(`Пользователь удалил питомца с ID: ${id}`);
+  }
 }
