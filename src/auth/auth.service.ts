@@ -110,27 +110,46 @@ export class AuthService {
         balance: true,
       },
     });
-    const promouser = await this.manager.findOne(User, {
-      where: [{ meta: { promocode: dto.promocode } }],
-    });
 
     let imageUrl: string | null = null;
 
     if (file) {
       imageUrl = await this.imageUploadService.uploadImageToImgbb(file);
     }
+
     if (existingUser) {
       throw new UnauthorizedException(
         'User with this email or telephone already exists'
       );
     }
+
     const refreshToken = this.generateRefreshToken(dto.telephone);
 
+    // Check if a promo code is provided and find the corresponding user
+    let promouser = null;
+    if (dto.promocode) {
+      promouser = await this.manager.findOne(User, {
+        where: { meta: { promocode: dto.promocode } },
+        relations: { balance: true },
+      });
+
+      // If a user with the provided promo code is found, ensure the balance exists
+      if (promouser) {
+        if (!promouser.balance) {
+          promouser.balance = this.manager.create(Balance, { promo: 0 });
+        }
+        promouser.balance.promo += 1000;
+        await this.manager.save(User, promouser);
+      }
+    }
+
+    // Generate a unique promo code for the new user
     let promoCode: string;
     do {
       promoCode = this.generatePromoCode();
     } while (await this.promoCodeExists(promoCode));
 
+    // Create and save the new user
     const newUser = this.manager.create(User, {
       refreshToken: refreshToken,
       meta: {
@@ -144,15 +163,15 @@ export class AuthService {
       },
       balance: this.manager.create(Balance, {}),
     });
+
     const user = await this.manager.save(User, newUser);
+
+    // Generate access token for the new user
     const accessToken = this.jwtService.sign({
       sub: user.id,
       role: user.meta.role,
     });
-    if (promouser) {
-      promouser.balance.promo += 1000;
-      await this.manager.save(User, promouser);
-    }
+
     return {
       accessToken: accessToken,
       user: user,

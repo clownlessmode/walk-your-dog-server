@@ -1,13 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { DefaultEntity } from 'src/common/default.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { AbonementType } from '../enums/abonementType.enum';
+import { MainService } from 'src/service/entities/main-service.entity';
 
 @Entity()
 export class Abonement extends DefaultEntity {
-  @Column({ type: 'enum', enum: AbonementType })
-  @ApiProperty({ example: 'WALKING' })
-  abonementType: AbonementType;
+  @ManyToOne(() => MainService, { eager: true })
+  @JoinColumn({ name: 'abonementTypeId' })
+  @ApiProperty({
+    type: () => MainService,
+    description: 'References the ID of a MainService',
+  })
+  abonementType: MainService;
 
   @Column()
   @ApiProperty({ example: '50' })

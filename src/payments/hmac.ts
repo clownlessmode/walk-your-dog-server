@@ -19,16 +19,10 @@ export class Hmac {
     // Create JSON string with escaped slashes
     const jsonString = JSON.stringify(preparedData).replaceAll('/', '\\/');
 
-    console.log('Debug: Prepared Data Object:', preparedData);
-    console.log('Debug: JSON String for HMAC:', jsonString);
-    console.log('Debug: Secret Key:', key);
-
     const signature = crypto
       .createHmac(algo, key)
       .update(jsonString)
       .digest('hex');
-
-    console.log('Debug: Generated Signature:', signature);
 
     return signature;
   }

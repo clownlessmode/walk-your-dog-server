@@ -1,17 +1,34 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAbonementDto } from './dto/createAbonement.dto';
 import { EntityManager } from 'typeorm';
 import { Abonement } from './entities/abonement.entity';
 import { UserAbonement } from './entities/userAbonement.entity';
 import { buyAbonementDto } from './dto/buyAbonement.dto';
 import { User } from 'src/users/entites/user.entity';
+import { MainService } from 'src/service/entities/main-service.entity';
 
 @Injectable()
 export class AbonementsService {
   constructor(private readonly manager: EntityManager) {}
 
   async create(dto: CreateAbonementDto): Promise<Abonement> {
-    const abonement = this.manager.create(Abonement, dto);
+    // Find the MainService by ID
+    const mainService = await this.manager.findOne(MainService, {
+      where: { id: dto.abonementType },
+    });
+
+    if (!mainService) {
+      throw new NotFoundException(
+        `MainService with ID ${dto.abonementType} not found`
+      );
+    }
+
+    // Create and save the Abonement
+    const abonement = this.manager.create(Abonement, {
+      ...dto,
+      abonementType: mainService, // Assign the MainService entity
+    });
+
     return await this.manager.save(abonement);
   }
 
