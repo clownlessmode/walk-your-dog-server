@@ -1,7 +1,9 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany } from 'typeorm';
 import { DefaultEntity } from '../../common/default.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { ArrayMinSize, IsArray, IsOptional, Matches } from 'class-validator';
+import { PetType } from 'src/pet-types/entities/pet-type.entity';
+import { MainService } from 'src/service/entities/main-service.entity';
 
 @Entity()
 export class Worker extends DefaultEntity {
@@ -30,9 +32,23 @@ export class Worker extends DefaultEntity {
       'Дни недели для повтора напоминания (1 - понедельник, ..., 7 - воскресенье)',
     example: [1, 3, 5],
     required: true,
-  })  
+  })
   @IsArray()
   @IsOptional()
   @ArrayMinSize(0)
   days: number[];
+
+  @ManyToMany(() => PetType, { cascade: true })
+  @JoinTable()
+  @ApiProperty({
+    isArray: true,
+  })
+  petTypes: PetType[];
+
+  @ManyToMany(() => MainService, { cascade: true })
+  @JoinTable()
+  @ApiProperty({
+    isArray: true,
+  })
+  services: MainService[];
 }

@@ -39,7 +39,10 @@ export class AuthService {
         },
       },
       relations: {
-        meta: true,
+        abonements: {
+          abonement: true,
+        },
+        meta: { addresses: true },
         balance: {
           payments: true,
         },
@@ -107,7 +110,21 @@ export class AuthService {
         { meta: { telephone: dto.telephone } },
       ],
       relations: {
-        balance: true,
+        abonements: {
+          abonement: true,
+        },
+        meta: { addresses: true },
+        balance: {
+          payments: true,
+        },
+        pets: {
+          parameters: {
+            vaccines: true,
+          },
+          breed: {
+            petType: true,
+          },
+        },
       },
     });
 
@@ -150,7 +167,7 @@ export class AuthService {
     } while (await this.promoCodeExists(promoCode));
 
     // Create and save the new user
-    const newUser = this.manager.create(User, {
+    const userData = this.manager.create(User, {
       refreshToken: refreshToken,
       meta: {
         name: dto.name,
@@ -164,8 +181,28 @@ export class AuthService {
       balance: this.manager.create(Balance, {}),
     });
 
-    const user = await this.manager.save(User, newUser);
+    const newUser = await this.manager.save(User, userData);
 
+    const user = await this.manager.findOne(User, {
+      where: { id: newUser.id },
+      relations: {
+        abonements: {
+          abonement: true,
+        },
+        meta: { addresses: true },
+        balance: {
+          payments: true,
+        },
+        pets: {
+          parameters: {
+            vaccines: true,
+          },
+          breed: {
+            petType: true,
+          },
+        },
+      },
+    });
     // Generate access token for the new user
     const accessToken = this.jwtService.sign({
       sub: user.id,

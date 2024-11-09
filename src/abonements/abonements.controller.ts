@@ -29,6 +29,14 @@ export class AbonementsController {
     return abonement;
   }
 
+  @Get('prizes')
+  @ApiOperation({ summary: 'Retrieve all prizes' })
+  async findAllPrizes(): Promise<Abonement[]> {
+    const abonement = this.abonementsService.findAllPrizes();
+    this.logger.debug(`Пользователь получил все подарки`);
+    return abonement;
+  }
+
   @Get('by/:id')
   @ApiOperation({ summary: 'Retrieve all abonements from user' })
   async findBy(@Param('id') id: string): Promise<UserAbonement[]> {

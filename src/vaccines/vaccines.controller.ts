@@ -13,10 +13,14 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateVaccineDto } from './dto/createVaccine.dto';
 import { UpdateVaccineDto } from './dto/updateVaccine.dto';
 import { Vaccine } from './entities/vaccine.entity';
+import { EntityManager } from 'typeorm';
 @ApiTags('Vaccines')
 @Controller('vaccines')
 export class VaccinesController {
-  constructor(private readonly vaccinesService: VaccinesService) {}
+  constructor(
+    private readonly vaccinesService: VaccinesService,
+    private readonly manager: EntityManager
+  ) {}
   logger = new Logger('Vaccines');
   @Post()
   @ApiOperation({ summary: 'Create a new vaccine entry' })

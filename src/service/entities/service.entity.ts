@@ -5,7 +5,6 @@ import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { User } from 'src/users/entites/user.entity';
 import { Pet } from 'src/pets/entities/pet.entity';
 import { Address } from 'src/adresses/entities/address.entity';
-
 export enum Status {
   DONE = 'done',
   IN_PROGRESS = 'in-progress',

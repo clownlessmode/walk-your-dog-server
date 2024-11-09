@@ -1,20 +1,12 @@
-import {
-  Body,
-  Controller,
-  Headers,
-  Post,
-  Res,
-  Req,
-  Logger,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Body, Controller, Headers, Post, Res, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Response, Request } from 'express';
+import { Response } from 'express';
 import { Hmac } from './hmac';
 import { ApiTags } from '@nestjs/swagger';
-import { EntityManager } from 'typeorm';
 import { PaymentsService } from './payments.service';
+import { EntityManager } from 'typeorm';
+import { AbonementsService } from 'src/abonements/abonements.service';
+import { Abonement } from 'src/abonements/entities/abonement.entity';
 
 interface Product {
   name: string;
@@ -46,8 +38,10 @@ interface WebhookPayload {
 @Controller('prodamus-webhook')
 export class ProdamusWebhookController {
   constructor(
+    private readonly manager: EntityManager,
     private readonly configService: ConfigService,
-    private readonly paymentService: PaymentsService
+    private readonly paymentService: PaymentsService,
+    private readonly abonementService: AbonementsService
   ) {}
   logger = new Logger('Web-hooks');
 
@@ -55,8 +49,7 @@ export class ProdamusWebhookController {
   async handleWebhook(
     @Headers('sign') signature: string,
     @Body() payload: WebhookPayload,
-    @Res() res: Response,
-    @Req() req: Request
+    @Res() res: Response
   ) {
     const secretKey = this.configService.get<string>('PRODAMUS_SECRET_KEY');
     const isSignatureValid = Hmac.verify(payload, secretKey, signature);
@@ -88,9 +81,16 @@ export class ProdamusWebhookController {
     const userIdMatch = userIdWithTimestamp.match(/^[a-f0-9-]{36}/);
     const userId = userIdMatch ? userIdMatch[0] : null;
 
+    // Extract prize parameter if present
+    const prizeMatch = order_num.match(/&prize=([a-f0-9-]{36}|undefined|null)/);
+    const prize =
+      prizeMatch && prizeMatch[1] !== 'undefined' && prizeMatch[1] !== 'null'
+        ? prizeMatch[1]
+        : null;
+
     if (userId) {
       this.logger.log(
-        `Prefix: ${prefix}, Action: ${action}, User ID: ${userId}`
+        `Prefix: ${prefix}, Action: ${action}, User ID: ${userId}, Prize: ${prize}`
       );
 
       switch (`${prefix}-${action}`) {
@@ -99,9 +99,22 @@ export class ProdamusWebhookController {
             userId,
             Number(payload.sum)
           );
+          const aprize = await this.manager.findOne(Abonement, {
+            where: { id: prize },
+          });
+          console.log('APRIZE: ', aprize);
+          if (aprize && Number(payload.sum) >= 3000) {
+            console.log('ДАБАВЛЯЮ');
+            const priaze = await this.abonementService.buy({
+              abonementId: prize,
+              balanceType: 'promo',
+              userId: userId,
+            });
+            console.log('ДАБАВИЛД', priaze);
+          }
           break;
         case 'wyd-withdrawal':
-          console.log(`ВЫПОЛНИ ВЫВОД id: ${userId}`);
+          console.log(`В ЫПОЛНИ ВЫВОД id: ${userId}`);
           break;
 
         default:

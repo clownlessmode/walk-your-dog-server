@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsDateString,
   IsEnum,
-  IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
@@ -61,7 +60,9 @@ export class CreateServiceDto {
   @IsUUID()
   addressId: string;
 
-  @IsEnum({ enum: ['general', 'promo'] })
-  @IsNotEmpty({ message: 'Тип баланса должен быть "general" или "promo"' })
-  balanceType: 'general' | 'promo';
+  @ApiProperty({ example: 'promo', enum: ['promo', 'general'] })
+  @IsEnum(['promo', 'general'], {
+    message: 'Тип баланса должен быть "promo" или "general"',
+  })
+  balanceType: 'promo' | 'general';
 }

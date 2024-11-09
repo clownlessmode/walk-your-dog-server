@@ -19,6 +19,7 @@ import { SubService } from 'src/service/entities/sub-service.entity';
 import { Story } from 'src/stories/entities/story.entity';
 import { Meta } from 'src/users/entites/meta.entity';
 import { User } from 'src/users/entites/user.entity';
+import { Worker } from 'src/users/entites/worker.entity';
 import { Vaccine } from 'src/vaccines/entities/vaccine.entity';
 
 @Module({
@@ -58,6 +59,7 @@ import { Vaccine } from 'src/vaccines/entities/vaccine.entity';
             MainService,
             Service,
             SubService,
+            Worker,
           ],
         };
       },

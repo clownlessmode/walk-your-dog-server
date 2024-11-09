@@ -1,8 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
-import { Balance } from './entities/balance.entity';
 import { AddBalanceDto } from './dto/add-balance.dto';
-import { Payment } from 'src/payments/entities/payment.entity';
 import { User } from 'src/users/entites/user.entity';
 import { PaymentData, PaymentsService } from 'src/payments/payments.service';
 
@@ -27,13 +25,14 @@ export class BalanceService {
     });
 
     const payment: PaymentData = {
-      order_id: `wyd-replenishment-${user.id}-${new Date().toISOString()}`,
+      order_id: `wyd-replenishment-${user.id}-${new Date().toISOString()}&prize=${dto.prize}`,
       customer_email: user.meta.email,
       customer_phone: user.meta.telephone,
       demo_mode: 1,
+      payment_method: 'AC',
       products: [
         {
-          name: `Пополнение баланса пользователя: ${user.meta.name} ${user.id}`,
+          name: `Пополнение баланса пользователя: ${user.meta.name}`,
           price: dto.amount,
           quantity: 1,
         },

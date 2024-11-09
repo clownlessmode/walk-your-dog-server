@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsNotEmpty, IsPositive, IsUUID } from 'class-validator';
-import { AbonementType } from '../enums/abonementType.enum';
+import { IsInt, IsNotEmpty, IsPositive, IsUUID } from 'class-validator';
 
 export class CreateAbonementDto {
   @ApiProperty({
@@ -18,7 +17,6 @@ export class CreateAbonementDto {
 
   @ApiProperty({ example: 1990 })
   @IsInt({ message: 'Цена должна быть целым числом' })
-  @IsPositive({ message: 'Цена должна быть положительным числом' })
   @IsNotEmpty({ message: 'Цена не может быть пустой' })
   price: number;
 }

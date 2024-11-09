@@ -1,15 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAbonementDto } from './dto/createAbonement.dto';
-import { EntityManager } from 'typeorm';
+import { EntityManager, LessThan, MoreThan } from 'typeorm';
 import { Abonement } from './entities/abonement.entity';
 import { UserAbonement } from './entities/userAbonement.entity';
 import { buyAbonementDto } from './dto/buyAbonement.dto';
 import { User } from 'src/users/entites/user.entity';
 import { MainService } from 'src/service/entities/main-service.entity';
+import { PaymentsService } from '../payments/payments.service';
 
 @Injectable()
 export class AbonementsService {
-  constructor(private readonly manager: EntityManager) {}
+  constructor(
+    private readonly manager: EntityManager,
+    private readonly paymentService: PaymentsService
+  ) {}
 
   async create(dto: CreateAbonementDto): Promise<Abonement> {
     // Find the MainService by ID
@@ -33,7 +37,11 @@ export class AbonementsService {
   }
 
   async findAll(): Promise<Abonement[]> {
-    return this.manager.find(Abonement);
+    return this.manager.find(Abonement, { where: { total: MoreThan(1) } });
+  }
+
+  async findAllPrizes(): Promise<Abonement[]> {
+    return this.manager.find(Abonement, { where: { total: LessThan(2) } });
   }
 
   async findBy(id: string): Promise<UserAbonement[]> {
@@ -54,7 +62,14 @@ export class AbonementsService {
       throw new Error('Abonement not found');
     }
 
-    // Находим пользователя
+    // Используем withdrawBalance для проверки и списания средств
+    await this.paymentService.withdrawBalance(
+      dto.userId,
+      abonement.price,
+      dto.balanceType
+    );
+
+    // Находим пользователя с обновлённым балансом
     const user = await this.manager.findOne(User, {
       where: { id: dto.userId },
       relations: ['balance'],
@@ -62,22 +77,6 @@ export class AbonementsService {
 
     if (!user) {
       throw new Error('User not found');
-    }
-
-    if (!user.balance) {
-      throw new Error('User balance not found');
-    }
-
-    // Проверяем и списываем средства
-    if (dto.balanceType === 'promo' && user.balance.promo >= abonement.price) {
-      user.balance.promo -= abonement.price;
-    } else if (
-      dto.balanceType === 'general' &&
-      user.balance.general >= abonement.price
-    ) {
-      user.balance.general -= abonement.price;
-    } else {
-      throw new Error('Insufficient funds or incorrect balance type');
     }
 
     // Создаем объект UserAbonement с правильными связями
@@ -92,9 +91,8 @@ export class AbonementsService {
     // Сохраняем все изменения в одной транзакции
     return await this.manager.transaction(
       async (transactionalEntityManager) => {
-        await transactionalEntityManager.save(user.balance);
-        await transactionalEntityManager.save(user);
-        return await transactionalEntityManager.save(userAbonement);
+        await transactionalEntityManager.save(userAbonement);
+        return userAbonement;
       }
     );
   }
@@ -104,5 +102,32 @@ export class AbonementsService {
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 30);
     return expiryDate;
+  }
+
+  async useAbonement(userId: string, abonementId: string): Promise<void> {
+    await this.manager.transaction(async (transactionalEntityManager) => {
+      // Находим абонемент пользователя
+      const userAbonement = await transactionalEntityManager.findOne(
+        UserAbonement,
+        {
+          where: { user: { id: userId }, abonement: { id: abonementId } },
+        }
+      );
+
+      if (!userAbonement) {
+        throw new NotFoundException('UserAbonement not found');
+      }
+
+      // Уменьшаем значение remaining на 1
+      userAbonement.remaining -= 1;
+
+      if (userAbonement.remaining <= 0) {
+        // Если remaining стал 0 или меньше, удаляем абонемент
+        await transactionalEntityManager.remove(userAbonement);
+      } else {
+        // Иначе сохраняем обновленный объект
+        await transactionalEntityManager.save(userAbonement);
+      }
+    });
   }
 }

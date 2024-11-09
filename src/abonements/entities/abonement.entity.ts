@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { DefaultEntity } from 'src/common/default.entity';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-import { AbonementType } from '../enums/abonementType.enum';
 import { MainService } from 'src/service/entities/main-service.entity';
 
 @Entity()

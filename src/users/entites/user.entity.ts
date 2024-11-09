@@ -7,6 +7,7 @@ import { Dialog } from 'src/chats/entities/dialog.entity';
 import { Pet } from 'src/pets/entities/pet.entity';
 import { Balance } from 'src/balance/entities/balance.entity';
 import { UserAbonement } from 'src/abonements/entities/userAbonement.entity';
+import { Worker } from './worker.entity';
 
 @Entity()
 export class User extends DefaultEntity {
@@ -49,9 +50,7 @@ export class User extends DefaultEntity {
   @ApiProperty({ type: () => UserAbonement, isArray: true })
   abonements: UserAbonement[];
 
-  /*
   @OneToOne(() => Worker, { cascade: true, nullable: true })
   @JoinColumn()
   worker?: Worker | null;
-  */
 }

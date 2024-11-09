@@ -21,6 +21,9 @@ export class UsersService {
   async findAll(): Promise<User[]> {
     return this.manager.find(User, {
       relations: {
+        abonements: {
+          abonement: true,
+        },
         meta: { addresses: true },
         balance: {
           payments: true,
@@ -50,7 +53,10 @@ export class UsersService {
       return this.manager.findOneOrFail(User, {
         where: { id: id },
         relations: {
-          meta: true,
+          abonements: {
+            abonement: true,
+          },
+          meta: { addresses: true },
           balance: {
             payments: true,
           },

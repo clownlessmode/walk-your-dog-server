@@ -22,6 +22,7 @@ export interface PaymentData {
   }[];
   urlReturn: string;
   urlSuccess: string;
+  payment_method?: string;
   do: string;
 }
 @Injectable()
@@ -222,5 +223,18 @@ export class PaymentsService {
         `С пользователя ID: ${userId} успешно списано ${amount} руб. с промо-баланса, запись о платеже не создана.`
       );
     }
+  }
+
+  async findAllUserPayments(userId: string): Promise<Payment[]> {
+    const user = await this.manager.findOne(User, {
+      where: { id: userId },
+      relations: ['balance', 'balance.payments'],
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    return user.balance?.payments || [];
   }
 }
