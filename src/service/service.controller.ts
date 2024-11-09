@@ -1,23 +1,6 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Body,
-  Param,
-  Query,
-  Patch,
-  Logger,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Logger } from '@nestjs/common';
 import { ServiceService } from './service.service';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiParam,
-  ApiQuery,
-  ApiBody,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { CreateMainServiceDto } from './dto/create-main.dto';
 import { MainService } from './entities/main-service.entity';
 import { SubService } from './entities/sub-service.entity';
@@ -38,7 +21,7 @@ export class ServiceController {
   async createService(@Body() dto: CreateServiceDto): Promise<Service> {
     const service = await this.serviceService.createService(dto);
     this.logger.debug(
-      `Создан новая неоплаченная услуга: ${dto.customerId}  ${dto.petId}`
+      `Создан новый запрос на услугу: ${dto.customerId}  ${dto.petId}`
     );
     return service;
   }

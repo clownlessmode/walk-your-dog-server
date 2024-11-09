@@ -11,8 +11,7 @@ import { CreateServiceDto } from './dto/create-service.dto';
 import { Address } from 'src/adresses/entities/address.entity';
 import { Pet } from 'src/pets/entities/pet.entity';
 import { User } from 'src/users/entites/user.entity';
-import { PaymentData, PaymentsService } from 'src/payments/payments.service';
-import { UUID } from 'typeorm/driver/mongodb/bson.typings';
+import { PaymentsService } from 'src/payments/payments.service';
 
 @Injectable()
 export class ServiceService {
@@ -76,7 +75,6 @@ export class ServiceService {
         `MainService with ID ${dto.mainServiceId} not found`
       );
     }
-
     // Проверка существования customer
     const customer = await this.manager.findOne(User, {
       where: { id: dto.customerId },
@@ -117,42 +115,27 @@ export class ServiceService {
     );
 
     const totalPrice =
-      mainService.price + subServices.reduce((sum, sub) => sum + sub.price, 0);
+      Number(mainService.price) +
+      subServices.reduce((sum, sub) => sum + Number(sub.price), 0);
+    // Списание суммы с баланса заказчика
+    await this.paymentService.withdrawBalance(
+      dto.customerId,
+      totalPrice,
+      dto.balanceType
+    );
 
-    const payment: PaymentData = {
-      order_id: '1',
-      customer_email: customer.meta.email,
-      customer_phone: customer.meta.telephone,
-      demo_mode: 1,
-      products: [
-        {
-          name: mainService.name,
-          price: mainService.price,
-          quantity: 1,
-        },
-        ...subServices.map((subService) => ({
-          name: subService.name,
-          price: subService.price,
-          quantity: 1,
-        })),
-      ],
-      urlReturn: 'https://yourdomain.com/return',
-      urlSuccess: 'https://yourdomain.com/success',
-      do: 'pay',
-    };
-
+    // Создание и сохранение новой записи Service
     const service = this.manager.create(Service, {
       mainService,
       customer,
       pet,
       address,
-      price: totalPrice,
       subServices,
-      isPayed: false,
+      isPayed: true,
       datetime: dto.datetime,
-      status: Status.WAITING_PAYMENT,
+      status: Status.IN_PROGRESS,
       comment: dto.comment,
-      payment_link: await this.paymentService.createPaymentLink(payment),
+      price: totalPrice,
     });
 
     return await this.manager.save(service);

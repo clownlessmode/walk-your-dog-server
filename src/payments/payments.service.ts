@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
-import { CreatePaymentDto } from './dto/prodamus.dto';
 import { Hmac } from './hmac';
 import { Payment } from './entities/payment.entity';
 import { User } from 'src/users/entites/user.entity';
@@ -156,7 +155,11 @@ export class PaymentsService {
     );
   }
 
-  async withdrawBalance(userId: string, amount: number) {
+  async withdrawBalance(
+    userId: string,
+    amount: number,
+    balanceType: 'general' | 'promo' = 'general'
+  ) {
     const user = await this.manager.findOne(User, {
       where: { id: userId },
       relations: {
@@ -173,30 +176,51 @@ export class PaymentsService {
       );
     }
 
-    // Проверка достаточности баланса для списания
-    if (user.balance.general < amount) {
-      this.logger.error(`Недостаточно средств для пользователя ID: ${userId}`);
+    // Проверка, существует ли указанный тип баланса у пользователя
+    const currentBalance = user.balance[balanceType];
+    if (currentBalance === undefined) {
+      this.logger.error(
+        `Баланс типа "${balanceType}" не найден для пользователя ID: ${userId}`
+      );
       throw new BadRequestException(
-        `Недостаточно средств для пользователя ID: ${userId}`
+        `Баланс типа "${balanceType}" не найден для пользователя ID: ${userId}`
       );
     }
 
-    // Списание суммы с общего баланса
-    user.balance.general -= amount;
+    // Проверка достаточности средств на выбранном балансе
+    if (currentBalance < amount) {
+      this.logger.error(
+        `Недостаточно средств на балансе типа "${balanceType}" для пользователя ID: ${userId}`
+      );
+      throw new BadRequestException(
+        `Недостаточно средств на балансе типа "${balanceType}" для пользователя ID: ${userId}`
+      );
+    }
 
-    // Создание новой записи о платеже
-    const payment = new Payment();
-    payment.type = 'withdrawal';
-    payment.total = amount;
-    payment.balanceId = user.balance;
+    // Списание суммы с выбранного баланса
+    user.balance[balanceType] -= amount;
 
-    await this.manager.transaction(async (transactionalEntityManager) => {
-      await transactionalEntityManager.save(user.balance);
-      await transactionalEntityManager.save(payment);
-    });
+    // Если используется general баланс, создаем запись о платеже
+    if (balanceType === 'general') {
+      const payment = new Payment();
+      payment.type = 'withdrawal';
+      payment.total = amount;
+      payment.balanceId = user.balance;
 
-    this.logger.log(
-      `С пользователя ID: ${userId} успешно списано ${amount} руб.`
-    );
+      await this.manager.transaction(async (transactionalEntityManager) => {
+        await transactionalEntityManager.save(user.balance);
+        await transactionalEntityManager.save(payment);
+      });
+
+      this.logger.log(
+        `С пользователя ID: ${userId} успешно списано ${amount} руб. с баланса типа "${balanceType}"`
+      );
+    } else {
+      // Сохраняем только баланс, если используется промо-баланс
+      await this.manager.save(user.balance);
+      this.logger.log(
+        `С пользователя ID: ${userId} успешно списано ${amount} руб. с промо-баланса, запись о платеже не создана.`
+      );
+    }
   }
 }

@@ -1,6 +1,5 @@
 import { DefaultEntity } from 'src/common/default.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { ServiceItem } from './service-item.entity';
+import { Column, Entity } from 'typeorm';
 
 @Entity()
 export class SubService extends DefaultEntity {
@@ -12,9 +11,4 @@ export class SubService extends DefaultEntity {
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
-
-  @ManyToOne(() => ServiceItem, (orderItem) => orderItem.subServices, {
-    onDelete: 'CASCADE',
-  })
-  serviceItem: ServiceItem;
 }

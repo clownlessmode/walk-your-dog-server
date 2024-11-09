@@ -30,7 +30,7 @@ export class Service extends DefaultEntity {
   @ManyToOne(() => Pet, { nullable: false })
   pet: Pet;
 
-  @OneToMany(() => SubService, (subService) => subService.serviceItem, {
+  @OneToMany(() => SubService, (subService) => subService.id, {
     cascade: true,
     eager: true,
   })
