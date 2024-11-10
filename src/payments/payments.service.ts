@@ -176,6 +176,12 @@ export class PaymentsService {
         `Пользователь или баланс не найден для ID: ${userId}`
       );
     }
+    if (amount === 0) {
+      this.logger.log(
+        `Запрошено списание 0 руб., операция завершена без изменений баланса для пользователя ID: ${userId}`
+      );
+      return;
+    }
 
     // Проверка, существует ли указанный тип баланса у пользователя
     const currentBalance = user.balance[balanceType];

@@ -95,13 +95,21 @@ export class ProdamusWebhookController {
 
       switch (`${prefix}-${action}`) {
         case 'wyd-replenishment':
+          if (Number(payload.attempt) != 1) {
+            break;
+          }
           await this.paymentService.replenishBalance(
             userId,
             Number(payload.sum)
           );
-          const aprize = await this.manager.findOne(Abonement, {
-            where: { id: prize },
-          });
+
+          let aprize = undefined;
+          if (prize) {
+            aprize = await this.manager.findOne(Abonement, {
+              where: { id: prize },
+            });
+          }
+
           console.log('APRIZE: ', aprize);
           if (aprize && Number(payload.sum) >= 3000) {
             console.log('ДАБАВЛЯЮ');

@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { SignUpDto } from './dto/signup.dto';
 import { SendSmsDto } from './dto/sendSms.dto';
-import { EntityManager } from 'typeorm';
+import { DeepPartial, EntityManager, In } from 'typeorm';
 import { User } from 'src/users/entites/user.entity';
 import { Balance } from 'src/balance/entities/balance.entity';
 import { HttpService } from '@nestjs/axios';
@@ -11,6 +11,9 @@ import { lastValueFrom } from 'rxjs';
 import { verifyCodeDto } from './dto/verifyCode.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { ImageUploadService } from 'src/image-upload/image-upload.service';
+import { Worker } from 'src/users/entites/worker.entity';
+import { PetType } from 'src/pet-types/entities/pet-type.entity';
+import { MainService } from 'src/service/entities/main-service.entity';
 @Injectable()
 export class AuthService {
   private smsCodes = new Map<string, string>();
@@ -53,6 +56,10 @@ export class AuthService {
           breed: {
             petType: true,
           },
+        },
+        worker: {
+          petTypes: true,
+          services: true,
         },
       },
     });
@@ -125,6 +132,10 @@ export class AuthService {
             petType: true,
           },
         },
+        worker: {
+          petTypes: true,
+          services: true,
+        },
       },
     });
 
@@ -166,6 +177,41 @@ export class AuthService {
       promoCode = this.generatePromoCode();
     } while (await this.promoCodeExists(promoCode));
 
+    let worker = null;
+    console.log('DTO NA AUTH', dto);
+    if (dto.start && dto.end && dto.days && dto.petTypes && dto.services) {
+      console.log('VSE YEST');
+      // Получаем PetType объекты по их ID
+      if (typeof dto.petTypes === 'string') {
+        dto.petTypes = dto.petTypes.split(',');
+      }
+      if (typeof dto.services === 'string') {
+        dto.services = dto.services.split(',');
+      }
+
+      // Получаем PetType объекты по их ID
+      const petTypes = await this.manager.findBy(PetType, {
+        id: In(dto.petTypes),
+      });
+
+      // Получаем MainService объекты по их ID
+      const services = await this.manager.findBy(MainService, {
+        id: In(dto.services),
+      });
+
+      // Создаем worker
+      const workerData: DeepPartial<Worker> = {
+        start: dto.start,
+        end: dto.end,
+        days: dto.days,
+        petTypes: petTypes,
+        services: services,
+      };
+
+      worker = this.manager.create(Worker, workerData);
+      worker = await this.manager.save(Worker, worker);
+    }
+
     // Create and save the new user
     const userData = this.manager.create(User, {
       refreshToken: refreshToken,
@@ -179,6 +225,7 @@ export class AuthService {
         image: imageUrl || null,
       },
       balance: this.manager.create(Balance, {}),
+      worker: worker,
     });
 
     const newUser = await this.manager.save(User, userData);
@@ -200,6 +247,10 @@ export class AuthService {
           breed: {
             petType: true,
           },
+        },
+        worker: {
+          petTypes: true,
+          services: true,
         },
       },
     });

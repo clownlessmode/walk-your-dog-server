@@ -36,6 +36,7 @@ export class Worker extends DefaultEntity {
   @IsArray()
   @IsOptional()
   @ArrayMinSize(0)
+  @Column('simple-array')
   days: number[];
 
   @ManyToMany(() => PetType, { cascade: true })

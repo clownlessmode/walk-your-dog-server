@@ -36,6 +36,10 @@ export class UsersService {
             petType: true,
           },
         },
+        worker: {
+          petTypes: true,
+          services: true,
+        },
       },
     });
   }
@@ -67,6 +71,10 @@ export class UsersService {
             breed: {
               petType: true,
             },
+          },
+          worker: {
+            petTypes: true,
+            services: true,
           },
         },
       });

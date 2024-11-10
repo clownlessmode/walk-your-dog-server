@@ -54,6 +54,24 @@ export class ServiceService {
     return result;
   }
 
+  async getAllUserServices(customerId: string): Promise<Service[]> {
+    return await this.manager.find(Service, {
+      where: {
+        customer: {
+          id: customerId,
+        },
+      },
+      relations: {
+        address: true,
+        customer: {
+          meta: true,
+        },
+        subServices: true,
+        mainService: true,
+      },
+    });
+  }
+
   // Main Services
   async createMain(dto: CreateMainServiceDto): Promise<MainService> {
     const service = await this.manager.create(MainService, dto);
@@ -200,8 +218,19 @@ export class ServiceService {
 
   async getByCustomer(id: string): Promise<Service[]> {
     return await this.manager.find(Service, {
-      where: { customer: { id: id } },
-      relations: ['mainService', 'worker', 'pet', 'subServices', 'address'],
+      where: {
+        customer: {
+          id: id,
+        },
+      },
+      relations: {
+        address: true,
+        customer: {
+          meta: true,
+        },
+        subServices: true,
+        mainService: true,
+      },
     });
   }
 }

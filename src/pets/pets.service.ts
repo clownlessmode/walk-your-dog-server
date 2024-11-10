@@ -7,6 +7,7 @@ import { ImageUploadService } from 'src/image-upload/image-upload.service';
 import { UsersService } from 'src/users/users.service';
 import { BreedService } from 'src/breed/breed.service';
 import { VaccinesService } from 'src/vaccines/vaccines.service';
+import { Service } from 'src/service/entities/service.entity';
 
 @Injectable()
 export class PetsService {
@@ -58,11 +59,23 @@ export class PetsService {
     });
   }
 
-  async findOne(id: string): Promise<Pet> {
+  async findOne(id: string): Promise<{ pet: Pet; services: Service[] }> {
     try {
-      return await this.manager.findOneOrFail(Pet, {
-        where: { id: id },
+      const services = await this.manager.find(Service, {
+        where: {
+          pet: { id: id },
+        },
       });
+
+      const pet = await this.manager.findOneOrFail(Pet, {
+        where: { id: id },
+        relations: {
+          breed: { petType: true },
+          parameters: { vaccines: true },
+          reminders: true,
+        },
+      });
+      return { pet: pet, services: services };
     } catch (error) {
       throw new NotFoundException(`Питомец с ID ${id} не найден`);
     }

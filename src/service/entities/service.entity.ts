@@ -1,3 +1,4 @@
+// src/service/entities/service.entity.ts
 import { DefaultEntity } from 'src/common/default.entity';
 import { SubService } from './sub-service.entity';
 import { MainService } from './main-service.entity';
@@ -5,6 +6,7 @@ import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { User } from 'src/users/entites/user.entity';
 import { Pet } from 'src/pets/entities/pet.entity';
 import { Address } from 'src/adresses/entities/address.entity';
+
 export enum Status {
   DONE = 'done',
   IN_PROGRESS = 'in-progress',
@@ -29,7 +31,7 @@ export class Service extends DefaultEntity {
   @ManyToOne(() => Pet, { nullable: false })
   pet: Pet;
 
-  @OneToMany(() => SubService, (subService) => subService.id, {
+  @OneToMany(() => SubService, (subService) => subService.service, {
     cascade: true,
     eager: true,
   })

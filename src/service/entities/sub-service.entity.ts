@@ -1,5 +1,6 @@
 import { DefaultEntity } from 'src/common/default.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
+import { Service } from './service.entity';
 
 @Entity()
 export class SubService extends DefaultEntity {
@@ -11,4 +12,7 @@ export class SubService extends DefaultEntity {
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
+
+  @ManyToOne(() => Service, (service) => service.subServices)
+  service: Service;
 }

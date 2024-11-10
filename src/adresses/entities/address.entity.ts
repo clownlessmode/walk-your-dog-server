@@ -13,6 +13,15 @@ export class Address extends DefaultEntity {
   @Column({ type: 'float' })
   lat: number;
 
+  @Column({ default: null, nullable: true })
+  apartment: string | null;
+
+  @Column({ default: null, nullable: true })
+  entrance: string | null;
+
+  @Column({ default: null, nullable: true })
+  doorcode: string | null;
+
   @ManyToOne(() => Meta, (meta) => meta.addresses)
   @JoinColumn()
   @ApiProperty({ type: () => Meta })

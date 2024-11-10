@@ -14,6 +14,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CreatePetDto } from './dto/CreatePet.dto';
 import { Pet } from './entities/pet.entity';
 import { PetsService } from './pets.service';
+import { Service } from 'src/service/entities/service.entity';
 
 @ApiTags('Pets')
 @Controller('pets')
@@ -44,9 +45,13 @@ export class PetsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Retrieve a specific pet by ID' })
-  async findOne(@Param('id') id: string): Promise<Pet> {
+  async findOne(
+    @Param('id') id: string
+  ): Promise<{ pet: Pet; services: Service[] }> {
     const pet = await this.petsService.findOne(id);
-    this.logger.debug(`Пользователь получил питомца: ${pet.name} (ID: ${id})`);
+    this.logger.debug(
+      `Пользователь получил питомца: ${pet.pet.name} (ID: ${id})`
+    );
     return pet;
   }
 

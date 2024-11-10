@@ -37,8 +37,8 @@ export class BalanceService {
           quantity: 1,
         },
       ],
-      urlReturn: 'https://yourdomain.com/return',
-      urlSuccess: 'https://yourdomain.com/success',
+      urlReturn: 'https://success.com/',
+      urlSuccess: 'https://success.com/',
       do: 'pay',
     };
 
